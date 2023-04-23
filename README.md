@@ -31,7 +31,9 @@ or
 yarn
 ```
 
-4. Set up your OpenAI API key in a .env file:
+4. Rename the .env.template file to .env:
+
+5. Set up your OpenAI API key in a .env file:
 
 ```ini
 OPENAI_API_KEY=your_api_key_here
