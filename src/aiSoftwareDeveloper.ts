@@ -1,13 +1,12 @@
-import * as readline from "readline";
 import * as path from "path";
 import dotenv from "dotenv";
 
 import {
   createFilesAndFolders,
   generateProjectStructure,
-} from "./utils/projectGenerator";
-import { generateCodeForProject } from "./utils/codeGenerator";
-import { outputMessage } from "./utils/common";
+} from "./polydev-lib/architect";
+import { generateCodeForProject } from "./polydev-lib/assembler";
+import { outputMessage } from "./polydev-lib/common";
 
 dotenv.config();
 

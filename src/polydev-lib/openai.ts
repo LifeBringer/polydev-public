@@ -40,23 +40,3 @@ export async function generateChat(messages: Message[]): Promise<string> {
     throw error;
   }
 }
-
-export async function generateCodeCompletion(prompt: string): Promise<string> {
-  try {
-    const response = await axiosInstance.post("completions", {
-      model: models.completion,
-      prompt,
-      max_tokens: 3000,
-      temperature: 0,
-    });
-
-    const generatedText = response.data.choices[0].text;
-    return generatedText.trim();
-  } catch (error: any) {
-    console.error("Error calling OpenAI API:", error.message);
-    if (error.response) {
-      console.error("Response data:", error.response.data); // Add this line for debugging
-    }
-    throw error;
-  }
-}

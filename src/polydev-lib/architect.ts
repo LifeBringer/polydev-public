@@ -1,4 +1,4 @@
-import { Message, generateChat } from "./openai"; // import the new util
+import { Message } from "./openai"; // import the new util
 import * as fs from "fs";
 import * as path from "path";
 
