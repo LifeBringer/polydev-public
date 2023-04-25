@@ -1,51 +1,15 @@
 import { Message, generateChat } from "./openai"; // import the new util
-import * as readlineSync from "readline-sync";
 import * as fs from "fs";
 import * as path from "path";
 
 import ora from "ora";
 import chalk from "chalk";
-
-export interface ProjectTreeNode {
-  type: "folder" | "file";
-  name: string;
-  children?: ProjectTreeNode[];
-  content?: string;
-  path?: string;
-}
-
-/**
- * Get user input from the console.
- * @param message Message to display to the user
- * @returns User input
- */
-export const getUserInput = (message: string): string => {
-  const coloredMessage = chalk.hex("#b993f7")(message);
-  const answer = readlineSync.question(coloredMessage);
-
-  if (answer.trim()) {
-    return answer.trim();
-  } else {
-    console.log("Please provide a valid input.");
-    return getUserInput(message);
-  }
-};
-
-/**
- *
- * @param messages
- * @returns
- */
-export async function generateChatWrapper(
-  messages: Message[]
-): Promise<string> {
-  try {
-    return await generateChat(messages);
-  } catch (error: any) {
-    console.error("Error generating chat:", error.message);
-    return "";
-  }
-}
+import {
+  getUserInput,
+  generateChatWrapper,
+  showSpinner,
+  ProjectTreeNode,
+} from "./common";
 
 /**
  * Generate project tree structure based on the user's description.
@@ -114,9 +78,10 @@ export async function generateProjectStructure(): Promise<{
     if (confirmation.toLowerCase() === "yes") {
       projectStructureConfirmed = true;
 
-      const spinner = ora(
-        chalk.hex("#c9f277")("Generating, please wait...")
-      ).start();
+      // const spinner = ora(
+      //   chalk.hex("#c9f277")("Generating, please wait...")
+      // ).start();
+      const spinner = showSpinner("Generating project structure");
 
       confirmation = `yes, please output the code for the project structure : ${generatedProjectStructure}.
       types for reference:
@@ -194,6 +159,11 @@ export async function createFilesAndFolders(
   }
 }
 
+/**
+ * Extract the project tree structure from the generatedProjectTreeNode variable.
+ * @param responseText Response text from the chatbot
+ * @returns Project tree structure
+ **/
 function extractGeneratedProjectTree(responseText: string): ProjectTreeNode[] {
   const regex =
     /const generatedProjectTreeNode: ProjectTreeNode\[] = (\[.*\])/s;

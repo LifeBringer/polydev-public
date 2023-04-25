@@ -5,9 +5,10 @@ import path from "path";
 import chalk from "chalk";
 import {
   ProjectTreeNode,
-  getUserInput,
   generateChatWrapper,
-} from "./projectGenerator";
+  getUserInput,
+  showSpinner,
+} from "./common";
 
 export async function generateCodeForFile(
   fileNode: ProjectTreeNode,
@@ -38,11 +39,8 @@ export async function generateCodeForFile(
   messages.push({ role: "user", content: initialCodeMessage });
 
   // Generate initial code
-  const spinner = ora(
-    chalk.hex("#c9f277")(
-      `Generating code for '${fileNode.name}', please wait...`
-    )
-  ).start();
+  const spinner = showSpinner(`Generating code for ${fileNode.name}`);
+
   let generatedCode = await generateChatWrapper(messages);
   messages.push({ role: "system", content: generatedCode });
   spinner.stop();
