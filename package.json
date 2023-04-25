@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/aiSoftwareDeveloper.ts --quiet",
+    "start": "nodemon --watch 'src/**/*.ts' --ignore 'src/generated_project/**' --exec 'ts-node' src/aiSoftwareDeveloper.ts --quiet",
     "push-public": "git add . && git commit -m 'Commit message' && git push git@github.com:mehrang92/polydev.git HEAD:main-public"
   },
   "dependencies": {

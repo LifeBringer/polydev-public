@@ -1,6 +1,9 @@
 # Node.js dependencies
 node_modules/
 
+# Generated files
+generated_project/
+
 # Environment variables
 .env
 

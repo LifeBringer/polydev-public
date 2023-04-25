@@ -5,7 +5,7 @@ const apiKey = process.env.OPENAI_API_KEY;
 // const model = "gpt-3.5-turbo"; // You can use other models like "text-davinci-003" as well
 const models = {
   chat: "gpt-3.5-turbo",
-  completion: "text-davinci-003",
+  completion: "code-davinci-002",
 };
 
 const axiosInstance = axios.create({
@@ -41,7 +41,7 @@ export async function generateChat(messages: Message[]): Promise<string> {
   }
 }
 
-export async function generateCompletion(prompt: string): Promise<string> {
+export async function generateCodeCompletion(prompt: string): Promise<string> {
   try {
     const response = await axiosInstance.post("completions", {
       model: models.completion,

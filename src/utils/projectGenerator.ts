@@ -1,4 +1,4 @@
-import { Message, generateChat, generateCompletion } from "./openai"; // import the new util
+import { Message, generateChat } from "./openai"; // import the new util
 import * as readlineSync from "readline-sync";
 import * as fs from "fs";
 import * as path from "path";
@@ -10,9 +10,16 @@ export interface ProjectTreeNode {
   type: "folder" | "file";
   name: string;
   children?: ProjectTreeNode[];
+  content?: string;
+  path?: string;
 }
 
-const getUserInput = (message: string): string => {
+/**
+ * Get user input from the console.
+ * @param message Message to display to the user
+ * @returns User input
+ */
+export const getUserInput = (message: string): string => {
   const coloredMessage = chalk.hex("#b993f7")(message);
   const answer = readlineSync.question(coloredMessage);
 
@@ -24,7 +31,14 @@ const getUserInput = (message: string): string => {
   }
 };
 
-async function generateChatWrapper(messages: Message[]): Promise<string> {
+/**
+ *
+ * @param messages
+ * @returns
+ */
+export async function generateChatWrapper(
+  messages: Message[]
+): Promise<string> {
   try {
     return await generateChat(messages);
   } catch (error: any) {
@@ -33,31 +47,15 @@ async function generateChatWrapper(messages: Message[]): Promise<string> {
   }
 }
 
-function extractGeneratedProjectTree(responseText: string): ProjectTreeNode[] {
-  const regex =
-    /const generatedProjectTreeNode: ProjectTreeNode\[] = (\[.*\])/s;
-  const match = responseText.match(regex);
-
-  if (!match || !match[1]) {
-    throw new Error("Unable to find generatedProjectTreeNode in the response.");
-  }
-
-  const codeSnippet = `
-    (() => {
-      return ${match[1]};
-    })()
-  `;
-
-  const generatedProjectTreeNode: ProjectTreeNode[] = eval(codeSnippet);
-  return generatedProjectTreeNode;
-}
-
 /**
  * Generate project tree structure based on the user's description.
  * @returns Project tree structure
  * @throws Error if the project tree structure cannot be generated
  */
-export async function generateProjectStructure(): Promise<ProjectTreeNode[]> {
+export async function generateProjectStructure(): Promise<{
+  projectStructure: ProjectTreeNode[];
+  messages: Message[];
+}> {
   let projectStructureConfirmed = false;
   let projectStructure: ProjectTreeNode[] = [];
   // const generatedStructures: string[] = [];
@@ -79,15 +77,15 @@ export async function generateProjectStructure(): Promise<ProjectTreeNode[]> {
   ];
 
   // get project name
-  const message = "Please enter your project name: ";
-  messages.push({ role: "system", content: message });
-  const projectName = await getUserInput(message);
+  const name_message = "Please enter your project name: ";
+  messages.push({ role: "system", content: name_message });
+  const projectName = await getUserInput(name_message);
   messages.push({ role: "user", content: projectName });
 
   // get project description
-  const message2 = "Please describe your desired project: ";
-  messages.push({ role: "system", content: message2 });
-  const projectDescription = await getUserInput(message2);
+  const describe_message = "Please describe your desired project: ";
+  messages.push({ role: "system", content: describe_message });
+  const projectDescription = await getUserInput(describe_message);
   messages.push({
     role: "user",
     content: `please generate the project structure based on the name: '${projectName}'(make sure the root directory is generated from this following proper folder name formating) and description: '${projectDescription}'. make sure to only provide the project structure and no other text or comments.`,
@@ -132,8 +130,18 @@ export async function generateProjectStructure(): Promise<ProjectTreeNode[]> {
 
       messages.push({ role: "user", content: confirmation });
       const generatedProjectTreeNode = await generateChatWrapper(messages);
+      try {
+        projectStructure = extractGeneratedProjectTree(
+          generatedProjectTreeNode
+        );
+      } catch (error: any) {
+        console.error("Error extracting the project structure:", error.message);
+        projectStructureConfirmed = false; // Reset the flag, so the loop continues
+      }
+      spinner.stop();
+      console.log(chalk.hex("#c9f277")("Project structure generated!"));
 
-      projectStructure = extractGeneratedProjectTree(generatedProjectTreeNode);
+      return { projectStructure: projectStructure, messages: messages };
     } else {
       // Add user-requested changes to the messages array
       messages.push({
@@ -143,7 +151,7 @@ export async function generateProjectStructure(): Promise<ProjectTreeNode[]> {
     }
   } while (!projectStructureConfirmed);
 
-  return projectStructure;
+  return { projectStructure: projectStructure, messages: messages };
 }
 
 /**
@@ -184,4 +192,23 @@ export async function createFilesAndFolders(
       );
     }
   }
+}
+
+function extractGeneratedProjectTree(responseText: string): ProjectTreeNode[] {
+  const regex =
+    /const generatedProjectTreeNode: ProjectTreeNode\[] = (\[.*\])/s;
+  const match = responseText.match(regex);
+
+  if (!match || !match[1]) {
+    throw new Error("Unable to find generatedProjectTreeNode in the response.");
+  }
+
+  const codeSnippet = `
+    (() => {
+      return ${match[1]};
+    })()
+  `;
+
+  const generatedProjectTreeNode: ProjectTreeNode[] = eval(codeSnippet);
+  return generatedProjectTreeNode;
 }
